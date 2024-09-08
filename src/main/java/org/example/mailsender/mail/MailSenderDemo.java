@@ -19,6 +19,7 @@ import java.util.Set;
 public class MailSenderDemo {
 
     private final JavaMailSender mailSender;
+    private final UserRepository userRepository;
     private final Set<String> set = new HashSet<>();
 
     @GetMapping("/sendMessage/")
@@ -30,7 +31,23 @@ public class MailSenderDemo {
         message.setSubject("HH.UZ");
         int i = random.nextInt(1000, 9999);
         message.setText(Integer.toString(i));
+        User user = User.builder()
+                .email(to)
+                .code(Integer.toString(i))
+                .build();
+        userRepository.save(user);
         mailSender.send(message);
         return ResponseEntity.ok("MESSAGE SENT SUCCESSFULLY");
+    }
+
+
+    @GetMapping("/success/")
+    public ResponseEntity<?> success(@RequestParam("id") Integer id,
+                                     @RequestParam("code") String code) {
+        User user = this.userRepository.findById(id).orElse(null);
+        if (user != null && user.getCode().equals(code)) {
+            return ResponseEntity.ok("YOU HAVE LOGIN SUCCESS");
+        }
+        return ResponseEntity.ok("CODE IS INCORRECT");
     }
 }
